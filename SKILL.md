@@ -1,6 +1,17 @@
 ---
 name: ocombo
-description: O COMBO — a forma de trabalhar que colocou um bot de atendimento no ar em 29/08/2026, agora como método padrão para entregar QUALQUER sistema de ponta a ponta com o mínimo de idas e vindas ao dono e o mínimo de tokens. Encadeia QUATRO skills numa esteira só - grilling (/grill-me, a árvore de decisões vira questionário auto-respondido), loop-agente (juiz CROSS-MODEL por DIFF com custo medido, Sonnet 5 por padrão e Opus 5 quando o dono pedir "extra"), akita (TDD, portão único, arquivos <500, receita versionada) e producao-senior (evidência = exit code, os 8 enganos, portões de publicação). v2 (05/09/2026) trouxe cinco economias provadas na fonte (juiz só sobre o diff, hooks como portões de zero tokens, paralelismo só do ruidoso ou desacoplado, plano como fonte única, custo.log por rodada); v3 (05/09/2026) trouxe as ferramentas - iniciar.py num comando, crítica da rúbrica por modelo barato, triagem determinística, dupla de juízes com concordância, timeout do juiz, histórico de gasto entre projetos, banco de rúbricas por tipo e decisões fechadas puxadas da memória. v4 (06/09/2026) trouxe as ferramentas de teste que rodam ANTES do juiz - linter de correção (ruff F/E9 + eslint no-undef/no-unused-vars) em qualquer repo, smoke de navegador com Playwright para tudo que tem tela e hook de commit que barra o vermelho. v5 (06/09/2026) trouxe a régua de escalada - o dono só é chamado por dinheiro, produção, apagar, terceiro ou decisão dele; o resto o juiz aprova - com ledger, cupom do dia e critério de rúbrica. v6 (06/09/2026, depois da busca na comunidade) trouxe três peças pequenas - carimbo preso ao SHA-256 do plano aprovado (claudex-loop), C0 CONFORMIDADE antes da qualidade com o juiz parando no primeiro bloco reprovado (Superpowers) e o balanço da dupla de juízes que mede se o Sonnet está sendo mais duro que o Opus (arXiv 2607.21656). Use quando o dono disser "/ocombo", "o combo", "usa o combo", "faz pelo sistema completo", "coloca no ar com o sistema", ou pedir um projeto inteiro entregue com revisão por juiz e sem esperar humano no meio — inclusive destravando gates humanos POR DENTRO do produto (botão no bot em vez de reunião).
+description: >-
+  O COMBO — a forma de trabalhar que colocou um bot de atendimento no ar em 29/08/2026, agora
+  método padrão para entregar QUALQUER sistema de ponta a ponta com o mínimo de idas e vindas ao
+  dono e o mínimo de tokens. Encadeia QUATRO skills numa esteira só: grilling (/grill-me vira
+  questionário auto-respondido), loop-agente (juiz CROSS-MODEL por DIFF, custo medido, Sonnet 5
+  padrão / Opus 5 no "extra"), akita (TDD, portão único, arquivos menor que 500, receita
+  versionada) e producao-senior (evidência = exit code, portões de publicação). Tem régua de
+  escalada própria — só chama o dono por dinheiro, produção, apagar, terceiro ou decisão dele.
+  Use SEMPRE que o dono disser "/ocombo", "o combo", "usa o combo", "faz pelo sistema completo",
+  "coloca no ar com o sistema", ou pedir um projeto entregue com revisão por juiz sem parar no
+  meio — inclusive destravando gates humanos POR DENTRO do produto (botão no bot em vez de
+  reunião). Histórico de versões (v2 a v8) no corpo, seção Versões.
 ---
 
 # O COMBO — grelha → juiz → TDD → produção, sem parar no meio
@@ -8,8 +19,40 @@ description: O COMBO — a forma de trabalhar que colocou um bot de atendimento 
 Nasceu em 29/08/2026, na noite em que um bot de atendimento foi ao ar por este
 exato encadeamento (7+ rodadas de juiz, 13+ achados, 2 incidentes que viraram teste),
 sob a ordem "só volte quando estiver pronto". Da v2 em diante a skill é julgada por
-ela mesma: cada versão tem fonte auditada em `references/pesquisa-*.md` (v6 =
-`references/pesquisa-2026-09-06-v6.md`), portão em `prova.py`, scripts em `references/scripts.md`; v7 = espelho público github.com/Galgan1/ocombo (scripts.md, seção final).
+ela mesma: cada versão tem fonte auditada em `references/` (v2 = `pesquisa-2026-09-05.md`,
+v3 = `pesquisa-2026-09-05-v3.md`, v4 = `pesquisa-2026-09-06-v4.md`, v6 =
+`pesquisa-2026-09-06-v6.md`), portão em `prova.py`, scripts em `references/scripts.md`;
+v7 = espelho público github.com/Galgan1/ocombo (scripts.md, seção final).
+
+## Versões
+
+Changelog resumido; o detalhe de cada peça está na seção correspondente abaixo.
+
+- **v2** (05/09/2026) — cinco economias provadas na fonte: juiz só sobre o diff, hooks
+  como portões de zero tokens, paralelismo só do ruidoso ou desacoplado, plano como
+  fonte única, custo.log por rodada. Ver "Juiz por diff", "Hooks", "Paralelismo",
+  "Plano como fonte única" e "Gasto medido por rodada" abaixo.
+- **v3** (05/09/2026) — as ferramentas: `iniciar.py` num comando, crítica da rúbrica
+  por modelo barato, triagem determinística, dupla de juízes com concordância, timeout
+  do juiz, histórico de gasto entre projetos, banco de rúbricas por tipo e decisões
+  fechadas puxadas da memória. Ver "Ferramentas da esteira" abaixo.
+- **v4** (06/09/2026) — ferramentas de teste que rodam ANTES do juiz: linter de
+  correção (ruff F/E9 + eslint no-undef/no-unused-vars) em qualquer repo, smoke de
+  navegador com Playwright para tudo que tem tela, hook de commit que barra o
+  vermelho. Ver "Ferramentas de teste" abaixo.
+- **v5** (06/09/2026) — régua de escalada: o dono só é chamado por dinheiro, produção,
+  apagar, terceiro ou decisão dele; o resto o juiz aprova, com ledger, cupom do dia e
+  critério de rúbrica. Ver "Régua de escalada" abaixo.
+- **v6** (06/09/2026, depois da busca na comunidade) — três peças pequenas: carimbo
+  preso ao SHA-256 do plano aprovado (claudex-loop), C0 CONFORMIDADE antes da
+  qualidade com o juiz parando no primeiro bloco reprovado (Superpowers), balanço da
+  dupla de juízes que mede se o Sonnet está sendo mais duro que o Opus (arXiv
+  2607.21656).
+- **v7** — espelho público github.com/Galgan1/ocombo.
+- **v8** (07/09/2026) — crítica do juiz em modo caveman (regras da skill `caveman`
+  embutidas no prompt de `juiz.py`, `OCOMBO_CAVEMAN=off|lite|full|ultra`, padrão
+  full); `CRITERIO`/`VEREDICTO` intocados, FAIL volta à prosa clara. Ver `juiz.py`
+  em "Ferramentas da esteira" abaixo.
 
 ## As quatro lâminas, na ordem
 
