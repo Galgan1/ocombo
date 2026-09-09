@@ -1,0 +1,9 @@
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A).
+C1. Peca `configure-<nome>.ps1 -Aplicar` idempotente: 1a execucao lista N mudancas, 2a execucao lista 0 (as duas saidas anexadas).
+C2. `verify-<nome>.ps1` prova o estado por leitura (registro, arquivo, servico), exit 0 anexado; nada "aplicado" sem verify.
+C3. `testes/prova-<nome>.ps1` cobre a logica pura sem tocar a maquina (exit 0 anexado).
+C4. Limitacao da build/permissao e MEDIDA e documentada (o que nao da para gravar, com o erro literal), nao contornada as escondidas.
+C5. Nada exige admin sem declarar; o que exige esta em passo separado com o "sim" do dono.
+C6. Cada mudanca operacional = 1 commit no repo da maquina com a saida do verify na mensagem.
+C7. ESCALADA: todo passo da regua (dinheiro, producao, apagar, terceiro, decisao do dono) tem `ledger.py escalar` + `sim` com a frase do dono antes de executar; nenhum passo FORA da regua esperou humano (`ledger.py pendentes` exit 0 anexado no fecho).
+C8. REGRESSAO: `verify.ps1` geral da maquina continua verde (ou o vermelho pre-existente esta declarado com dono).

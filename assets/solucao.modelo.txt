@@ -1,0 +1,26 @@
+=== ESTADO (fonte unica - atualize a cada lamina; quem entra em contexto limpo le SO isto) ===
+Lamina atual : [grelha | juiz | tdd | producao]
+Rodada do juiz: N (teto: 5)   | custo.log: sim/nao
+Feito        : - ...
+Pendente     : - ...
+Proximo passo: - um so, executavel, com o comando
+Contexto herdado inviolavel (decisoes do dono ja fechadas): H1 ..., H2 ...
+
+=== TAREFA ===
+(o que entregar, em uma frase; o que NAO esta no escopo)
+
+=== RUBRICA (binaria, fixa entre rodadas; ordem = ordem do julgamento) ===
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir H1..Hn; FAIL aqui = AJUSTE e o resto N/A.
+C1. ...                                  (qualidade: como se prova: comando / arquivo / exit code)
+C2. ...
+C9. REGRESSAO: o que ja passava continua passando (portao do projeto exit 0).
+(APROVADO grava aprovado.sha256 do solucao.txt; mudou o plano depois, `juiz.py --carimbo` acusa CADUCOU)
+
+=== SOLUCAO (rodada N) ===
+(o que mudou nesta rodada em relacao a anterior - o juiz le delta.patch primeiro)
+Arquivos: caminho -> o que faz
+Evidencias: comando -> exit code / saida essencial (anexe a saida na instancia, nao alegue)
+
+=== ENTREGA (so no fecho; julgada como fato, nao como narrativa) ===
+O que EU verifiquei (comando ao lado) | o que outro agente reportou | o que nao deu para provar e por que
+Custo medido: custo.log (rodadas x modelo x tokens x USD)

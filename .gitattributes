@@ -1,0 +1,9 @@
+# LF no git para todo texto — o prova.py da skill exige LF (o canal de skills do autor também)
+* text=auto eol=lf
+*.md   text eol=lf
+*.py   text eol=lf
+*.txt  text eol=lf
+*.json text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.yml  text eol=lf

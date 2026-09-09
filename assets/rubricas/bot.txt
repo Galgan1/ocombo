@@ -1,0 +1,10 @@
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A).
+C1. Cada comando/botao do bot tem teste que EXECUTA o caminho de fiacao (handler real), nao so a logica pura (armadilha: simbolo orfao derrubou o bot 2 min).
+C2. Gate humano (aprovacao, allowlist, assinatura) e UM TOQUE dentro do bot; o humano continua decidindo (P1) e falha de arquivo nao abre mais do que o provado (P2, fail-closed).
+C3. Token/segredo vem do cofre ou de variavel; nenhum literal no repo, na skill ou na instancia (varredura por regex em TUDO que viaja).
+C4. Deploy so pelo script com portao (`--checar` lista contagem que bate com `git status`); `portao-publicacao.sh` exit 0 anexado.
+C5. Mensagem enviada = id retornado pela API/ponte anexado na instancia; "enviado" sem id e FAIL.
+C6. Incidente da rodada virou teste de regressao + linha no changelog (nunca maquiado).
+C7. `scripts/qualidade.py <repo>` (ruff F/E9 + eslint no-undef/no-unused-vars) exit 0 anexado DEPOIS do ultimo conserto; achado pre-existente que ficou tem dono e motivo na SOLUCAO (simbolo orfao nao passa).
+C8. ESCALADA: todo passo da regua (dinheiro, producao, apagar, terceiro, decisao do dono) tem `ledger.py escalar` + `sim` com a frase do dono antes de executar; nenhum passo FORA da regua esperou humano (`ledger.py pendentes` exit 0 anexado no fecho).
+C9. REGRESSAO: a suite do repo continua verde (exit 0 anexado) e os comandos que ja existiam respondem igual.

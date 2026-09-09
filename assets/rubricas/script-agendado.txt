@@ -1,0 +1,10 @@
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A).
+C1. O script tem exit code honesto: erro = exit != 0 e mensagem no log; nada morre em silencio (PS 5.1: EAP=Stop + stderr nativo tratados).
+C2. Log em arquivo com carimbo de data; ultima linha diz o resultado ("OK n itens" / "ERRO motivo").
+C3. Tarefa/cron criada pela receita versionada (nao a mao) e listada na instancia (`schtasks /query` ou `crontab -l` anexado).
+C4. Hora de Brasilia convertida para UTC quando roda na VPS (linha do cron anexada com o calculo).
+C5. Rodou uma vez de verdade fora do horario (`-Forcar`/manual) com saida anexada; "rerun agendado nao e exit code".
+C6. Falha transitoria (rede, servico fora) espera a janela e tenta de novo; nao ganha excecao permanente.
+C7. `scripts/qualidade.py <repo>` exit 0 anexado (ruff F/E9: nome indefinido, import sem uso, sintaxe) depois do ultimo conserto.
+C8. ESCALADA: todo passo da regua (dinheiro, producao, apagar, terceiro, decisao do dono) tem `ledger.py escalar` + `sim` com a frase do dono antes de executar; nenhum passo FORA da regua esperou humano (`ledger.py pendentes` exit 0 anexado no fecho).
+C9. REGRESSAO: as outras tarefas/crons do host continuam listadas e a suite do repo continua verde.

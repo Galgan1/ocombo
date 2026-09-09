@@ -1,0 +1,38 @@
+{
+  "_comentario": "ocombo v2/v4 - portoes deterministicos (0 tokens). Cole em .claude/settings.json do PROJETO; copie assets/portao-hook.py para .claude/hooks/. Fonte: https://code.claude.com/docs/en/hooks (exit 2 bloqueia; PostToolUse so realimenta; Stop com stop_hook_active; PreToolUse com `if` escopa o comando). OCOMBO_PORTAO = comando do portao do projeto (padrao `python prova.py`). v4: o PreToolUse do commit roda o linter da skill (scripts/qualidade.py) e o portao ANTES do commit - commit vermelho nem nasce. Caminho com barras normais (barra invertida nao executa, medido 05/09/2026).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "if": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/skills/ocombo/scripts/qualidade.py . && python .claude/hooks/portao-hook.py pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/portao-hook.py post"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/portao-hook.py stop"
+          }
+        ]
+      }
+    ]
+  }
+}
