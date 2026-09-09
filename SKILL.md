@@ -11,48 +11,15 @@ description: >-
   Use SEMPRE que o dono disser "/ocombo", "o combo", "usa o combo", "faz pelo sistema completo",
   "coloca no ar com o sistema", ou pedir um projeto entregue com revisão por juiz sem parar no
   meio — inclusive destravando gates humanos POR DENTRO do produto (botão no bot em vez de
-  reunião). Histórico de versões (v2 a v8) no corpo, seção Versões.
+  reunião). Histórico de versões (v2 a v8) em references/versoes.md.
 ---
 
 # O COMBO — grelha → juiz → TDD → produção, sem parar no meio
 
-Nasceu em 29/08/2026, na noite em que um bot de atendimento foi ao ar por este
-exato encadeamento (7+ rodadas de juiz, 13+ achados, 2 incidentes que viraram teste),
-sob a ordem "só volte quando estiver pronto". Da v2 em diante a skill é julgada por
-ela mesma: cada versão tem fonte auditada em `references/` (v2 = `pesquisa-2026-09-05.md`,
-v3 = `pesquisa-2026-09-05-v3.md`, v4 = `pesquisa-2026-09-06-v4.md`, v6 =
-`pesquisa-2026-09-06-v6.md`), portão em `prova.py`, scripts em `references/scripts.md`;
-v7 = espelho público github.com/Galgan1/ocombo (scripts.md, seção final).
-
-## Versões
-
-Changelog resumido; o detalhe de cada peça está na seção correspondente abaixo.
-
-- **v2** (05/09/2026) — cinco economias provadas na fonte: juiz só sobre o diff, hooks
-  como portões de zero tokens, paralelismo só do ruidoso ou desacoplado, plano como
-  fonte única, custo.log por rodada. Ver "Juiz por diff", "Hooks", "Paralelismo",
-  "Plano como fonte única" e "Gasto medido por rodada" abaixo.
-- **v3** (05/09/2026) — as ferramentas: `iniciar.py` num comando, crítica da rúbrica
-  por modelo barato, triagem determinística, dupla de juízes com concordância, timeout
-  do juiz, histórico de gasto entre projetos, banco de rúbricas por tipo e decisões
-  fechadas puxadas da memória. Ver "Ferramentas da esteira" abaixo.
-- **v4** (06/09/2026) — ferramentas de teste que rodam ANTES do juiz: linter de
-  correção (ruff F/E9 + eslint no-undef/no-unused-vars) em qualquer repo, smoke de
-  navegador com Playwright para tudo que tem tela, hook de commit que barra o
-  vermelho. Ver "Ferramentas de teste" abaixo.
-- **v5** (06/09/2026) — régua de escalada: o dono só é chamado por dinheiro, produção,
-  apagar, terceiro ou decisão dele; o resto o juiz aprova, com ledger, cupom do dia e
-  critério de rúbrica. Ver "Régua de escalada" abaixo.
-- **v6** (06/09/2026, depois da busca na comunidade) — três peças pequenas: carimbo
-  preso ao SHA-256 do plano aprovado (claudex-loop), C0 CONFORMIDADE antes da
-  qualidade com o juiz parando no primeiro bloco reprovado (Superpowers), balanço da
-  dupla de juízes que mede se o Sonnet está sendo mais duro que o Opus (arXiv
-  2607.21656).
-- **v7** — espelho público github.com/Galgan1/ocombo.
-- **v8** (07/09/2026) — crítica do juiz em modo caveman (regras da skill `caveman`
-  embutidas no prompt de `juiz.py`, `OCOMBO_CAVEMAN=off|lite|full|ultra`, padrão
-  full); `CRITERIO`/`VEREDICTO` intocados, FAIL volta à prosa clara. Ver `juiz.py`
-  em "Ferramentas da esteira" abaixo.
+Nasceu em 29/08/2026, na noite em que um bot de atendimento foi ao ar por este exato encadeamento
+(7+ rodadas de juiz, 13+ achados, 2 incidentes que viraram teste), sob a ordem "só volte quando estiver
+pronto". Da v2 em diante a skill é julgada por ela mesma: fonte auditada em `references/pesquisa-*.md`,
+portão em `prova.py`, scripts em `references/scripts.md`, changelog v2–v8 em `references/versoes.md`.
 
 ## As quatro lâminas, na ordem
 
@@ -327,15 +294,6 @@ sentido; rúbrica sempre com critério de regressão; a responsabilidade é de q
 
 ## Armadilhas já pagas (29/08 a 06/09/2026)
 
-Lista completa, com data e antídoto, em `references/armadilhas.md`. As que mais custaram:
-
-- Portão verde com lista CURTA demais é suspeito: `ssh` sem `-n` dentro de `while read` engolia a lista e o deploy
-  de uma integração fiscal ficou falso-verde de 30/08 a 02/09. Confira a CONTAGEM do portão com `git status`.
-- Prova "verificado" só vale com artefato na pasta do juiz, gerado DEPOIS do último conserto, com o nome que a
-  rúbrica cita; a seção ENTREGA é julgada como fato (`stat`, exit code), nunca como narrativa.
-- Extração de módulo deixa SÍMBOLO ÓRFÃO que `node --check` e teste puro não pegam (bot caiu 2 min): a suíte
-  executa a fiação e o `qualidade.py` (v4) roda antes do juiz.
-- Segredo nunca vira literal em portão que viaja pelo canal (SHA-256 em arquivo local); `$` seguido de dígito no
-  SKILL.md vira argumento; heredoc do Bash quebra com texto longo em pt-BR (grave por Write, confira com `file`).
-- Resumo de terceiro (vídeo, blog) não entra na esteira sem auditoria na fonte; o juiz `claude -p` roda em sandbox
-  e só lê a instância — copie o corpus e prove a cópia por SHA-256.
+Lista completa, com data e antídoto, em `references/armadilhas.md` (as cinco que mais custaram estão no
+topo desse arquivo).
+- Mais caras: `ssh` sem `-n` no `while read` (portão falso-verde); segredo nunca literal no canal (SHA-256 local).

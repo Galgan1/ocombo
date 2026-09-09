@@ -1,5 +1,19 @@
 # Armadilhas já pagas — lista completa (29/08 a 06/09/2026)
 
+## As que mais custaram (estavam no SKILL.md até 09/09/2026)
+
+- Portão verde com lista CURTA demais é suspeito: `ssh` sem `-n` dentro de `while read` engolia a lista e o deploy
+  de uma integração fiscal ficou falso-verde de 30/08 a 02/09. Confira a CONTAGEM do portão com `git status`.
+- Prova "verificado" só vale com artefato na pasta do juiz, gerado DEPOIS do último conserto, com o nome que a
+  rúbrica cita; a seção ENTREGA é julgada como fato (`stat`, exit code), nunca como narrativa.
+- Extração de módulo deixa SÍMBOLO ÓRFÃO que `node --check` e teste puro não pegam (bot caiu 2 min): a suíte
+  executa a fiação e o `qualidade.py` (v4) roda antes do juiz.
+- Segredo nunca vira literal em portão que viaja pelo canal (SHA-256 em arquivo local); `$` seguido de dígito no
+  SKILL.md vira argumento; heredoc do Bash quebra com texto longo em pt-BR (grave por Write, confira com `file`).
+- Resumo de terceiro (vídeo, blog) não entra na esteira sem auditoria na fonte; o juiz `claude -p` roda em sandbox
+  e só lê a instância — copie o corpus e prove a cópia por SHA-256.
+
+
 Movida do SKILL.md em 06/09/2026 (v4) para manter o corpo da skill magro; o SKILL.md guarda o ponteiro e as três mais caras. Nada foi apagado: cada item abaixo é o texto original.
 
 - Portão verde com lista CURTA demais é suspeito (consertos de uma integração fiscal, 02/09/2026): o `--checar` do deploy
