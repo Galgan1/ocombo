@@ -548,7 +548,7 @@ def segredos_na_instancia(pasta):
     return achados
 
 
-# POSIX (29/10/2026): raizes comuns, nunca '/' solto (senao /adm, /fiz e URLs virariam caminho); so onde o separador e '/'
+# POSIX (29/10/2026): raizes comuns, nunca '/' solto (senao rotas de site e URLs virariam caminho); so onde o separador e '/'
 _RE_CAMINHO_POSIX = re.compile(r'(?<![\w:/.~])(/(?:tmp|home|mnt|var|opt|srv|usr|etc|root|Users|private)/[^\s"\'<>|)\]`,;]+)')
 
 
