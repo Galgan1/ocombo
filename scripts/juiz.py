@@ -435,7 +435,8 @@ _RE_CAMINHO_HOME = re.compile(r'(?<![\w])(?:~|%USERPROFILE%|\$env:USERPROFILE|\$
 _RAIZ_PROIBIDA = ('.secrets', '.credenciais', '.ssh', 'oauth', '.gnupg')
 _PASTAS_PESSOAIS = ('documents', 'desktop', 'downloads', 'pictures', 'videos', 'music', 'onedrive', '.claude', '.gemini')
 # dados do app Antigravity (conversas, brain, perfil do navegador): nunca inteiros; so uma subpasta citada (ex.: scratch\x)
-_NUNCA_RAIZ = ('.gemini\\antigravity', '.gemini\\antigravity-ide', '.gemini\\antigravity-backup', '.gemini\\antigravity-browser-profile')
+_NUNCA_RAIZ = tuple(os.path.join('.gemini', a) for a in ('antigravity', 'antigravity-ide', 'antigravity-backup',
+                                                           'antigravity-browser-profile'))   # separador do SO (29/10/2026)
 
 
 def _raiz_git(pasta, home):

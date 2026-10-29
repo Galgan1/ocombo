@@ -168,6 +168,10 @@ def main():
                             'test_papeis', 'test_sommelier', 'test_ram'],
                            cwd=os.path.join(AQUI, 'scripts'), capture_output=True, text=True)
         print(r.stderr.strip().splitlines()[-1] if r.stderr.strip() else '')
+        if r.returncode != 0:   # 29/10/2026: a CI do espelho so via o resumo; o nome do teste e o que permite consertar sem rodar de novo
+            for ln in (r.stderr or '').splitlines():
+                if ln.startswith(('FAIL:', 'ERROR:')):
+                    print('  ' + ln.strip())
         ok(r.returncode == 0, 'unittest test_juiz + test_v3 + test_hook + test_qualidade + test_ledger + test_modos + test_papeis + test_sommelier + test_ram verdes (exit %d)' % r.returncode)
     # v9 (10/09/2026): o filtro do smoke tem teste puro em node (sem Playwright e sem rede)
     tf = os.path.join(AQUI, 'assets', 'playwright', 'test_filtro.js')
