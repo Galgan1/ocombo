@@ -1,6 +1,10 @@
 === ESTADO (fonte unica - atualize a cada lamina; quem entra em contexto limpo le SO isto) ===
 Lamina atual : [grelha | juiz | tdd | producao]
 Rodada do juiz: N (teto: 5)   | custo.log: sim/nao
+Modo deste ciclo: 0 (padrao) | juiz claude-sonnet-5-5 | teto 5 rodadas | dupla nao | paralelo 2
+Porta        : GRELHA=SIM|NAO - motivo (saida de scripts/porta.py; grelha pulada sem motivo = FAIL em C0)
+Laminas      : grelha -> executor -> juiz [-> producao]
+Papeis       : grelha=ocombo-grelha | executor=ocombo-executor | juiz=ocombo-juiz (cross-model)
 Feito        : - ...
 Pendente     : - ...
 Proximo passo: - um so, executavel, com o comando

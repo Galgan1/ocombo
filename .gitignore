@@ -16,3 +16,6 @@ Thumbs.db
 historico/
 custo.log
 veredicto.md
+
+# cache do pytest (prova.py roda os testes da skill)
+.pytest_cache/

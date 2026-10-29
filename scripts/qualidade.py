@@ -8,8 +8,9 @@ Roda `python -m ruff check --select F,E9` (nome indefinido, import/variavel sem 
 estilo) nos .py e `eslint` (config fixa em assets/eslint.config.base.mjs: no-undef, no-unused-vars e as regras
 de correcao do recommended) nos .js/.mjs/.cjs. Ignora node_modules, .git, dist, build, __pycache__, venv,
 historico, corpus, dist-*/build-*, *.min.js, bundle minificado (alguma linha > 3000 chars) e arquivo que o
-git do repo ignora (`git check-ignore`). Le "type": "module" do package.json
-para tratar .js como ESM (OCOMBO_ESLINT_MODULE=1 para a config).
+git do repo ignora (`git check-ignore`). O sourceType de cada .js vem do package.json mais proximo que
+declara "type" (subindo ate a raiz passada; v 16/10/2026): os arquivos vao ao eslint em dois grupos,
+OCOMBO_ESLINT_MODULE=1 (module) e =0 (commonjs); a linha do relatorio mostra esm=1, esm=0 ou esm=1:N/0:M.
 Pega exatamente o que a suite nao pega: simbolo orfao apos extracao de modulo (bot caiu 2 min em
 29/08/2026), variavel de outro arquivo, import quebrado.
 
@@ -111,6 +112,54 @@ def repo_esm(repo):
             return json.load(f).get('type') == 'module'
     except (OSError, ValueError):
         return False
+
+
+def _type_declarado(pasta, cache):
+    """'module'/'commonjs'/... se o package.json da pasta declara "type"; None se nao ha arquivo ou campo."""
+    if pasta not in cache:
+        try:
+            with open(os.path.join(pasta, 'package.json'), encoding='utf-8') as f:
+                tipo = json.load(f).get('type')
+        except (OSError, ValueError, AttributeError):
+            tipo = None
+        cache[pasta] = tipo if isinstance(tipo, str) else None
+    return cache[pasta]
+
+
+def esm_por_arquivo(arquivo, repo, cache=None):
+    """True se o package.json mais proximo QUE DECLARA "type" (subindo ate a raiz passada) diz "module".
+
+    POR QUE (16/10/2026, ciclo de revisão de um site): so a raiz era lida; o site tem a raiz sem "type" e
+    app/client/package.json com "type": "module" — 85 Parsing error falsos. Regra do Node: vale o package.json
+    mais proximo. package.json SEM "type" no meio do caminho nao corta a subida (o Node o leria como commonjs,
+    mas subprojeto de bundler sem "type" sob raiz ESM passava hoje e nao pode passar a falhar). Nenhum
+    package.json com "type" ate a raiz = como antes (commonjs).
+    """
+    cache = {} if cache is None else cache
+    raiz = os.path.normcase(os.path.abspath(repo))
+    pasta = os.path.dirname(os.path.abspath(arquivo))
+    while True:
+        tipo = _type_declarado(pasta, cache)
+        if tipo is not None:
+            return tipo == 'module'
+        if os.path.normcase(pasta) == raiz or os.path.dirname(pasta) == pasta:
+            return False
+        pasta = os.path.dirname(pasta)
+
+
+def agrupar_por_esm(arquivos, repo):
+    """{'1': [...module], '0': [...commonjs]} na ordem de entrada; grupo vazio nao aparece (logica pura)."""
+    cache, grupos = {}, {}
+    for a in arquivos:
+        grupos.setdefault('1' if esm_por_arquivo(a, repo, cache) else '0', []).append(a)
+    return grupos
+
+
+def rotulo_esm(grupos):
+    """Texto do esm= no relatorio: '1' ou '0' quando homogeneo (igual a antes); '1:N/0:M' quando misto."""
+    if len(grupos) == 1:
+        return next(iter(grupos))
+    return '/'.join('%s:%d' % (k, len(grupos[k])) for k in ('1', '0') if k in grupos)
 
 
 def resumir_ruff(saida_json):
@@ -218,23 +267,27 @@ def main(argv):
     jss = [j for j in (listar(repo, EXT_JS) if so in (None, 'js') else []) if not minificado(j)]
     jss = sem_ignorados(jss, ignorados_pelo_git(repo, jss))
     if jss:
-        env = dict(os.environ)
-        env['OCOMBO_ESLINT_MODULE'] = '1' if repo_esm(repo) else '0'
+        grupos = agrupar_por_esm(jss, repo)   # sourceType por arquivo: package.json mais proximo (16/10/2026)
         achados, code, out, err, quebrou = [], 0, '[]', '', False
-        for lote in lotes([os.path.relpath(j, repo) for j in jss]):
-            cmd = _eslint_cmd(repo) + ['--no-config-lookup', '--config', os.path.abspath(CONFIG_ESLINT),
-                                       '--format', 'json', '--no-error-on-unmatched-pattern'] + lote
-            code, out, err = rodar(cmd, repo, env)
-            if not out.strip().startswith('['):
-                quebrou = True
+        for esm in ('1', '0'):
+            env = dict(os.environ)
+            env['OCOMBO_ESLINT_MODULE'] = esm
+            for lote in lotes([os.path.relpath(j, repo) for j in grupos.get(esm, [])]):
+                cmd = _eslint_cmd(repo) + ['--no-config-lookup', '--config', os.path.abspath(CONFIG_ESLINT),
+                                           '--format', 'json', '--no-error-on-unmatched-pattern'] + lote
+                code, out, err = rodar(cmd, repo, env)
+                if not out.strip().startswith('['):
+                    quebrou = True
+                    break
+                achados += resumir_eslint(out)
+            if quebrou:
                 break
-            achados += resumir_eslint(out)
         if quebrou:
             linhas.append('eslint: AUSENTE ou falhou (exit %d): %s' % (code, (err or out).strip()[:300]))
             faltou = True
         else:
             total += len(achados)
-            linhas.append('eslint: %d arquivo(s) .js (esm=%s), %d erro(s)' % (len(jss), env['OCOMBO_ESLINT_MODULE'], len(achados)))
+            linhas.append('eslint: %d arquivo(s) .js (esm=%s), %d erro(s)' % (len(jss), rotulo_esm(grupos), len(achados)))
             linhas += _fmt(achados, repo, max_erros)
 
     if not pys and not jss:

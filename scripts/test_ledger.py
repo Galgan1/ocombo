@@ -34,6 +34,31 @@ class TestLedger(unittest.TestCase):
         self.assertEqual([e['instancia'] for e in abertas], ['b'])
         self.assertEqual(ledger.pendentes(itens, 'a'), [])
 
+    def test_sim_com_fecha_fecha_a_escalada_certa_nao_a_ultima(self):
+        # 15/09/2026: o sim LIFO fechou escalada errada (incidente de 08/09/2026)
+        itens = [
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'decisao', 'texto': 'E1 liberar o portao', 'ts': '2026-09-15T10:00:00'},
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'decisao', 'texto': 'E2 login manual', 'ts': '2026-09-15T10:00:01'},
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'producao', 'texto': 'E3 criar a tarefa', 'ts': '2026-09-15T10:00:02'},
+            {'instancia': 'a', 'tipo': 'sim', 'texto': 'pode acessar', 'fecha': 'E1', 'ts': '2026-09-15T12:00:00'},
+        ]
+        self.assertEqual([e['texto'] for e in ledger.pendentes(itens, 'a')], ['E2 login manual', 'E3 criar a tarefa'])
+
+    def test_sim_com_fecha_sem_par_nao_fecha_nada(self):
+        itens = [
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'producao', 'texto': 'E3 criar a tarefa', 'ts': '2026-09-15T10:00:02'},
+            {'instancia': 'a', 'tipo': 'sim', 'texto': 'ok', 'fecha': 'E9', 'ts': '2026-09-15T12:00:00'},
+        ]
+        self.assertEqual(len(ledger.pendentes(itens, 'a')), 1)
+
+    def test_sim_sem_fecha_continua_lifo(self):
+        itens = [
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'decisao', 'texto': 'E1', 'ts': '2026-09-15T10:00:00'},
+            {'instancia': 'a', 'tipo': 'escalada', 'regua': 'producao', 'texto': 'E3', 'ts': '2026-09-15T10:00:02'},
+            {'instancia': 'a', 'tipo': 'sim', 'texto': 'ok', 'ts': '2026-09-15T12:00:00'},
+        ]
+        self.assertEqual([e['texto'] for e in ledger.pendentes(itens, 'a')], ['E1'])
+
     def test_sim_sem_escalada_nao_quebra(self):
         self.assertEqual(ledger.pendentes([{'instancia': 'a', 'tipo': 'sim', 'texto': 'ok'}]), [])
 

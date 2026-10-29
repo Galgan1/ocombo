@@ -26,7 +26,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(AQUI)
 MAPA = os.path.join(os.path.expanduser('~'), '.claude', 'ocombo-publicar.json')
 TEXTO = ('.md', '.py', '.txt', '.json', '.js', '.mjs', '.bat', '.sh', '.yml', '.yaml', '.cfg', '.toml')
-IGNORAR = ('.git', 'node_modules', '__pycache__', '.ruff_cache')
+IGNORAR = ('.git', 'node_modules', '__pycache__', '.ruff_cache', '.pytest_cache')
 FORA_DA_LISTA_PRIVADA = ()  # desde 08/09/2026 nenhum arquivo escapa da lista privada
 
 GENERICOS = [  # (nome, regex) — valem para qualquer repo publico
@@ -45,6 +45,7 @@ RX_NOREPLY = re.compile(r'^\d+\+[A-Za-z0-9-]+@users\.noreply\.github\.com$')
 RX_EMAIL = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}')
 EMAILS_OK_NA_MENSAGEM = ('@anthropic.com', '@users.noreply.github.com')
 EXCECOES = {  # trechos legitimos que casam com um padrao acima (a URL de fonte nao e telefone)
+    'unidade de rede / Drive': ["'onedrive'"],  # nome de pasta pessoal que o juiz.py recusa ler: literal entre aspas, nao caminho
     'telefone': [r'arxiv\.org/abs/\d{4}\.\d{5}', r'\b20\d{2}-\d{2}-\d{2}\b', r'\d{4}-\d{4}\s*\)?\s*(Wiley|IEEE)', r'\(?\d{10} = 0x[0-9A-Fa-f]{8}'],
 }
 

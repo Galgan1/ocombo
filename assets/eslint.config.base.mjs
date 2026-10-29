@@ -27,8 +27,8 @@ const browserGlobals = {
   innerHeight: 'readonly', devicePixelRatio: 'readonly', getSelection: 'readonly', speechSynthesis: 'readonly',
   SpeechSynthesisUtterance: 'readonly', Intl: 'readonly',
 };
-// service worker (PWA): sem isto todo sw.js da casa acusa no-undef falso em `caches`
-// (medido em 07/09/2026 no superpads: 14 achados, zero defeitos). Fonte:
+// service worker (PWA): sem isto todo sw.js acusa no-undef falso em `caches`
+// (medido em 07/09/2026 num projeto de exemplo: 14 achados, zero defeitos). Fonte:
 // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
 const serviceWorkerGlobals = {
   caches: 'readonly', clients: 'readonly', registration: 'readonly', skipWaiting: 'readonly',

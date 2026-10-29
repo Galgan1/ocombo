@@ -1,10 +1,11 @@
-C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A).
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A). O ESTADO declara PORTA (grelha rodou ou o motivo de nao rodar) e PAPEIS (quem executou, quem julgou); papel trocado no meio do ciclo = FAIL.
 C1. SKILL.md com frontmatter name == pasta e description que diz QUANDO disparar; corpo magro (limite de linhas no portao), detalhe em references/.
 C2. Metodo de terceiro so com URL + trecho literal auditado em references/; o que foi procurado e NAO achado esta declarado.
-C3. Sem segredo nem dado identificador (a skill viaja pelo Drive e pela VPS); portao varre TODOS os arquivos, nao so .md.
+C3. Sem segredo nem dado identificador (a skill pode ser publicada); portao varre TODOS os arquivos, nao so .md.
 C4. Nenhum `$` seguido de digito no SKILL.md sem `\` (o corpo passa por substituicao de argumentos ao ser invocado com /nome args).
-C5. Tudo em LF; casa == canal por `diff -r --strip-trailing-cr` vazio depois de publicar; INDICE.md com a description nova.
+C5. Tudo em LF; copia local == canal por `diff -r --strip-trailing-cr` vazio depois de publicar; indice com a description nova.
 C6. Nada da versao anterior se perde sem decisao declarada (diff anexado; linhas removidas listadas com o motivo).
 C7. `scripts/qualidade.py` da propria skill exit 0 anexado (o portao pegou F401/F823 na skill ocombo em 06/09/2026: quem escreve portao tambem erra).
 C8. ESCALADA: todo passo da regua (dinheiro, producao, apagar, terceiro, decisao do dono) tem `ledger.py escalar` + `sim` com a frase do dono antes de executar; nenhum passo FORA da regua esperou humano (`ledger.py pendentes` exit 0 anexado no fecho).
-C9. REGRESSAO: `prova.py` da skill continua exit 0 e os scripts que ja existiam mantem a interface.
+C9. SOMMELIER: todo fan-out de 3+ agentes traz no ESTADO a linha `Sommelier:` de `scripts/sommelier.py --plano` e cada agente saiu com o `model` dela; lote em tier de topo, ou conferente no tier do autor, sem `ledger.py sim` com a frase do dono = FAIL. Ciclo sem fan-out = N/A.
+C10. REGRESSAO: `prova.py` da skill continua exit 0 e os scripts que ja existiam mantem a interface.

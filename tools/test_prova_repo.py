@@ -93,3 +93,15 @@ class Excluir(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ExcecoesDaVarredura(unittest.TestCase):
+    def test_literal_de_pasta_pessoal_entre_aspas_nao_e_caminho(self):
+        # juiz.py lista 'onedrive' entre as pastas pessoais que recusa ler: literal entre aspas, nao caminho
+        d = tempfile.mkdtemp()
+        with open(os.path.join(d, 'x.py'), 'w', encoding='utf-8', newline=chr(10)) as f:
+            f.write("PASTAS = ('documents', 'onedrive')" + chr(10))
+        self.assertEqual(prova_repo.varrer(d), [])
+        with open(os.path.join(d, 'y.md'), 'w', encoding='utf-8', newline=chr(10)) as f:
+            f.write('copiei de C:' + chr(92) + 'Users' + chr(92) + 'Fulano' + chr(92) + 'One' + 'Drive' + chr(10))
+        self.assertTrue(any('Drive' in p or 'usuario' in p for p in prova_repo.varrer(d)))

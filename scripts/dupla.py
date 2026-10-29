@@ -2,13 +2,15 @@
 """Dupla de juizes: um segundo modelo julga o MESMO estado (sem novo snapshot) e a concordancia por
 criterio vira concordancia.md. Discordancia alta = rubrica mal escrita, nao "juiz ruim".
 
-Uso: python dupla.py <pasta_da_instancia> <modeloB>   (o veredicto.md atual e o do juiz A)
+Uso: python dupla.py <pasta_da_instancia> <modeloB> [--effort e] [--timeout s]   (o veredicto.md atual e o do juiz A)
+     (17/10/2026: sem --effort/--timeout o B segue o modo, OCOMBO_MODO, como o juiz.py; antes rodava sem effort e com 900 s)
      python dupla.py --balanco                          (v6: ultimos 10 ciclos com dupla, exit 1 = alerta)
 Grava veredicto.<modeloB>.md e concordancia.md; custo no custo.log com rotulo "dupla"; evento "dupla" no ledger
 com quantas vezes B aprovou o que A reprovou (a favor do executor). Acima de 3 em 10 = decisao do dono: trocar o juiz.
 """
 import os
 import re
+import shutil
 import sys
 
 import juiz
@@ -92,7 +94,11 @@ def _ledger_dupla(pasta, n, disc, taxa):
         print('[dupla] aviso: ledger nao gravado (%s)' % e)
 
 
-def rodar(pasta, modelo_b):
+def rodar(pasta, modelo_b, effort=None, timeout=None):
+    import modos
+    perf = modos.perfil()   # 17/10/2026: o juiz B segue o modo como o A (opala = xhigh, 1800 s); explicito vence
+    effort = juiz.resolver_effort(effort, perf)
+    timeout = juiz.resolver_timeout(timeout, perf)
     pasta = os.path.abspath(pasta)
     ver_a = os.path.join(pasta, 'veredicto.md')
     if not os.path.exists(ver_a):
@@ -100,11 +106,33 @@ def rodar(pasta, modelo_b):
         return 2
     n = juiz.rodada_atual(pasta)
     d = juiz._ler(os.path.join(pasta, 'delta.patch')) if os.path.exists(os.path.join(pasta, 'delta.patch')) else ''
-    ant = os.path.join(pasta, 'historico', 'veredicto.r%d.md' % (n - 1))
-    fails = juiz.fails_de(juiz._ler(ant)) if os.path.exists(ant) else []
-    p = juiz.prompt(n, fails, bool(d)).replace('veredicto.md', 'veredicto.%s.md' % modelo_b)
-    saida, resp, status = juiz.chamar_juiz(pasta, modelo_b, p, 'veredicto.%s.md' % modelo_b)
-    juiz.registrar_custo(pasta, juiz.custo(resp, n, modelo_b), rotulo='dupla', status=status)
+    hist = os.path.join(pasta, 'historico')
+    ant_a = os.path.join(hist, 'veredicto.r%d.md' % (n - 1))
+    ant_b = os.path.join(hist, 'veredicto.%s.r%d.md' % (modelo_b, n - 1))
+    texto_a = juiz._ler(ant_a) if os.path.exists(ant_a) else None
+    texto_b = juiz._ler(ant_b) if os.path.exists(ant_b) else None
+    # 17/10/2026 (opala): o B julga o que o A deixou pendente (FAIL + N/A) E o que ELE reprovou ou pulou na rodada
+    # anterior; antes so os FAIL do A entravam, e um B que reprovou sozinho nunca mais julgava o proprio FAIL
+    pend = []
+    sol = juiz._ler(os.path.join(pasta, 'solucao.txt'))
+    hist_v = juiz.historico_de_veredictos(pasta)[:max(n - 1, 0)]
+    for t in (texto_a, texto_b):            # 17/10: + critério da rubrica que nenhum veredicto julgou (emenda)
+        for k in (juiz.pendentes_com_novos(t, sol, historico=hist_v + [t]) if t else []):
+            if k not in pend:
+                pend.append(k)
+    # 17/10/2026 (opala r2, juiz B C9): o log da dupla prova o modo, o effort e o timeout que o B recebeu
+    print('[dupla] rodada %d modelo %s%s timeout %s (modo %s)'
+          % (n, modelo_b, (' effort ' + effort) if effort else '', timeout, perf['apelido']), flush=True)
+    p = juiz.prompt(juiz.rodada_do_prompt(n, texto_b or texto_a), pend, bool(d))
+    p = p.replace('veredicto.md', 'veredicto.%s.md' % modelo_b)
+    if texto_b:
+        p = p.replace('historico/veredicto.r%d.md' % (n - 1), 'historico/veredicto.%s.r%d.md' % (modelo_b, n - 1))
+    saida, resp, status = juiz.chamar_juiz(pasta, modelo_b, p, 'veredicto.%s.md' % modelo_b, timeout, effort=effort)
+    vb = os.path.join(pasta, 'veredicto.%s.md' % modelo_b)
+    if os.path.exists(vb):
+        os.makedirs(hist, exist_ok=True)
+        shutil.copyfile(vb, os.path.join(hist, 'veredicto.%s.r%d.md' % (modelo_b, n)))
+    juiz.registrar_custo(pasta, juiz.custo(resp, n, modelo_b, effort), rotulo='dupla', status=status)
     c = comparar(juiz._ler(ver_a), saida)
     md = concordancia_md(c, 'juizA', modelo_b)
     disc = discordancias(c)
@@ -128,9 +156,22 @@ def imprimir_balanco():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) >= 2 and sys.argv[1] in ('-h', '--help'):   # v15: --help sai 0 como o modos.py (portao de regressao)
+        print(__doc__)
+        sys.exit(0)
     if len(sys.argv) >= 2 and sys.argv[1] == '--balanco':
         sys.exit(imprimir_balanco())
-    if len(sys.argv) < 3:
+    a = sys.argv[1:]
+    ef = to = None
+    if '--effort' in a:
+        i = a.index('--effort')
+        ef = a[i + 1] if i + 1 < len(a) else ''
+        del a[i:i + 2]
+    if '--timeout' in a:
+        i = a.index('--timeout')
+        to = int(a[i + 1]) if i + 1 < len(a) else None
+        del a[i:i + 2]
+    if len(a) < 2:
         print(__doc__)
         sys.exit(2)
-    sys.exit(rodar(sys.argv[1], sys.argv[2]))
+    sys.exit(rodar(a[0], a[1], ef, to))

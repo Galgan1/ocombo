@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Instalador UNIVERSAL do loop-agente.
+"""Instalador UNIVERSAL do loop-agente (v2, 02/10/2026).
 
 Roda em QUALQUER pasta e gera ali uma INSTÂNCIA isolada do loop:
 pontes (.bat) + contrato próprios. Cada pasta vira um loop independente,
@@ -12,13 +12,18 @@ Uso:
 
 Idempotente: sobrescreve as pontes (código), mas NUNCA apaga solucao.txt,
 veredicto.md ou o log (dados da instância).
+
+Modelos (v2): verificador padrão `claude-sonnet-5-5` (tier diferente de quem executa: a sessão Fable/Opus
+ou o Antigravity-Gemini), executor padrão `claude-opus-5-5`. As pontes aceitam um 2º argumento `effort`
+(low|medium|high|xhigh|max) para a escada do loop_run. Fonte única desta cópia: a skill `loop-agente`
+(`~/.claude/skills/loop-agente/scripts/loop_init.py`); o /ocombo carrega cópia idêntica.
 """
 import os
 import sys
 
 VERIFICAR_BAT = r'''@echo off
 REM Loop Verifier (Config C) - instancia local nesta pasta.
-REM Antigravity escreve solucao.txt; roda este bat; Claude (Opus) julga -> veredicto.md
+REM Antigravity escreve solucao.txt; roda este bat; Claude (Sonnet 5.5, tier != autor) julga -> veredicto.md
 cd /d "%~dp0"
 if not exist solucao.txt (
   echo [erro] solucao.txt nao encontrado em %cd%
@@ -27,7 +32,7 @@ if not exist solucao.txt (
 if exist veredicto.md del veredicto.md
 set "CLAUDE=claude"
 where claude >nul 2>nul || set "CLAUDE=%APPDATA%\npm\claude.cmd"
-call "%CLAUDE%" -p "Voce e o VERIFIER do loop (cross-model). Use a skill loop-agente. Leia solucao.txt nesta pasta (tarefa + rubrica + solucao). NAO execute a tarefa; JULGUE cada criterio da rubrica PASS/FAIL com motivo (a critica vem ANTES). Se existir prova.bat, o exit code dela ja e o gate duro - julgue so o que o teste nao pega (escopo, estilo, pt-BR). Termine com UMA linha exatamente: VEREDICTO: APROVADO  ou  VEREDICTO: AJUSTE (nunca REPROVADO nem NAO APROVADO); se AJUSTE, inclua follow-up cirurgico. Escreva veredicto.md, sobrescrevendo. Nao peca confirmacao." --model claude-opus-5 --permission-mode acceptEdits < nul
+call "%CLAUDE%" -p "Voce e o VERIFIER do loop (cross-model). Use a skill loop-agente. Leia solucao.txt nesta pasta (tarefa + rubrica + solucao). NAO execute a tarefa; JULGUE cada criterio da rubrica PASS/FAIL com motivo (a critica vem ANTES). Se existir prova.bat, o exit code dela ja e o gate duro - julgue so o que o teste nao pega (escopo, estilo, pt-BR). Termine com UMA linha exatamente: VEREDICTO: APROVADO  ou  VEREDICTO: AJUSTE (nunca REPROVADO nem NAO APROVADO); se AJUSTE, inclua follow-up cirurgico. Escreva veredicto.md, sobrescrevendo. Nao peca confirmacao." --model claude-sonnet-5-5 --permission-mode acceptEdits < nul
 if not exist veredicto.md (
   echo [erro] Claude falhou em gerar veredicto.md
   echo %date% %time% - ERRO >> historico_loop.log
@@ -44,11 +49,13 @@ echo [ok] veredicto.md gerado nesta pasta.
 '''
 
 EMULAR_BAT = r'''@echo off
-REM Emulador cross-model: juiz != autor (opus ^<-^> sonnet).
-REM Uso: emular_verificador.bat ^<modelo^>   (ex.: claude-sonnet-5)
+REM Emulador cross-model: juiz != autor (opus/fable ^<-^> sonnet).
+REM Uso: emular_verificador.bat ^<modelo^> [effort]   (ex.: claude-sonnet-5-5 low)
 cd /d "%~dp0"
 set "VMODEL=%~1"
-if "%VMODEL%"=="" set "VMODEL=claude-sonnet-5"
+if "%VMODEL%"=="" set "VMODEL=claude-sonnet-5-5"
+set "VEXTRA="
+if not "%~2"=="" set "VEXTRA=--effort %~2"
 if not exist solucao.txt (
   echo [erro] solucao.txt nao encontrado em %cd%
   exit /b 1
@@ -56,13 +63,13 @@ if not exist solucao.txt (
 if exist veredicto.md del veredicto.md
 set "CLAUDE=claude"
 where claude >nul 2>nul || set "CLAUDE=%APPDATA%\npm\claude.cmd"
-call "%CLAUDE%" -p "Voce e o VERIFIER do loop (cross-model, juiz != autor). Use a skill loop-agente. Leia solucao.txt; NAO execute a tarefa; JULGUE cada criterio da rubrica PASS/FAIL com motivo (a critica vem ANTES). Se existir prova.bat, o exit code dela e o gate duro - julgue so o que o teste nao pega. Termine com UMA linha exatamente: VEREDICTO: APROVADO  ou  VEREDICTO: AJUSTE (nunca REPROVADO nem NAO APROVADO); se AJUSTE, follow-up cirurgico. Escreva veredicto.md, sobrescrevendo. Nao peca confirmacao." --model %VMODEL% --permission-mode acceptEdits < nul
+call "%CLAUDE%" -p "Voce e o VERIFIER do loop (cross-model, juiz != autor). Use a skill loop-agente. Leia solucao.txt; NAO execute a tarefa; JULGUE cada criterio da rubrica PASS/FAIL com motivo (a critica vem ANTES). Se existir prova.bat, o exit code dela e o gate duro - julgue so o que o teste nao pega. Termine com UMA linha exatamente: VEREDICTO: APROVADO  ou  VEREDICTO: AJUSTE (nunca REPROVADO nem NAO APROVADO); se AJUSTE, follow-up cirurgico. Escreva veredicto.md, sobrescrevendo. Nao peca confirmacao." --model %VMODEL% %VEXTRA% --permission-mode acceptEdits < nul
 if not exist veredicto.md (
   echo [erro] Verificador %VMODEL% falhou em gerar veredicto.md
   exit /b 1
 )
 echo.
-echo [ok] veredicto.md gerado pelo verificador cross-model %VMODEL%
+echo [ok] veredicto.md gerado pelo verificador cross-model %VMODEL% %VEXTRA%
 '''
 
 VENCI_BAT = r'''@echo off
@@ -73,22 +80,24 @@ call "%~dp0verificar.bat"
 
 EXECUTAR_BAT = r'''@echo off
 REM Subagente EXECUTOR - produz solucao.txt a partir de spec.txt (nesta pasta).
-REM Uso: executar.bat <modelo_executor>   (default opus)
+REM Uso: executar.bat <modelo_executor> [effort]   (default claude-opus-5-5; effort so na escada do loop_run)
 cd /d "%~dp0"
 set "XMODEL=%~1"
-if "%XMODEL%"=="" set "XMODEL=claude-opus-5"
+if "%XMODEL%"=="" set "XMODEL=claude-opus-5-5"
+set "XEXTRA="
+if not "%~2"=="" set "XEXTRA=--effort %~2"
 if not exist spec.txt (
   echo [erro] spec.txt nao encontrado em %cd%
   exit /b 1
 )
 set "CLAUDE=claude"
 where claude >nul 2>nul || set "CLAUDE=%APPDATA%\npm\claude.cmd"
-call "%CLAUDE%" -p "Voce e o SUBAGENTE EXECUTOR descrito em spec.txt nesta pasta. Leia spec.txt (papel, objetivo, contexto, resultado esperado, rubrica). Se existir veredicto.md, e follow-up de prioridade maxima - corrija so o que falhou. Mantenha-se no escopo. Se existir prova.bat nesta pasta, ela e o GATE DURO (verde = exit code 0) - produza a solucao para passar nela. Produza a solucao e escreva solucao.txt contendo: a TAREFA e a RUBRICA copiadas de spec.txt, depois uma linha 'SOLUCAO PRODUZIDA:' e a sua solucao no formato pedido. Sobrescreva solucao.txt. Nao peca confirmacao." --model %XMODEL% --permission-mode acceptEdits < nul
+call "%CLAUDE%" -p "Voce e o SUBAGENTE EXECUTOR descrito em spec.txt nesta pasta. Leia spec.txt (papel, objetivo, contexto, resultado esperado, rubrica). Se existir veredicto.md, e follow-up de prioridade maxima - corrija so o que falhou. Mantenha-se no escopo. Se existir prova.bat nesta pasta, ela e o GATE DURO (verde = exit code 0) - produza a solucao para passar nela. Produza a solucao e escreva solucao.txt contendo: a TAREFA e a RUBRICA copiadas de spec.txt, depois uma linha 'SOLUCAO PRODUZIDA:' e a sua solucao no formato pedido. Sobrescreva solucao.txt. Nao peca confirmacao." --model %XMODEL% %XEXTRA% --permission-mode acceptEdits < nul
 if not exist solucao.txt (
   echo [erro] executor %XMODEL% nao gerou solucao.txt
   exit /b 1
 )
-echo [ok] solucao.txt gerado pelo executor %XMODEL%
+echo [ok] solucao.txt gerado pelo executor %XMODEL% %XEXTRA%
 '''
 
 SPEC_TEMPLATE = '''# Subagente: (nome)
@@ -117,7 +126,7 @@ Esta pasta é uma **instância isolada** do loop-agente. Tudo aqui é local: as 
 | Arquivo | Quem escreve | Conteúdo |
 |---|---|---|
 | `solucao.txt` | Antigravity | tarefa + rúbrica + a solução produzida |
-| `veredicto.md` | Claude (Verifier) | PASS/FAIL item a item + APROVADO/AJUSTE + follow-up |
+| `veredicto.md` | Claude (Verifier) | PASS/FAIL item a item + `VEREDICTO: APROVADO|AJUSTE` + follow-up |
 
 ## Ciclo (máx. 5 tentativas)
 1. PLANNER: defina a rúbrica (critérios PASS/FAIL).
@@ -127,9 +136,11 @@ Esta pasta é uma **instância isolada** do loop-agente. Tudo aqui é local: as 
 5. Parada: 5 tentativas.
 
 ## Pontes desta instância
-- `verificar.bat` — Claude **Opus** como Verifier (uso normal, junto ao Antigravity-Gemini = já é cross-model).
-- `emular_verificador.bat <modelo>` — emulador cross-model quando NÃO há Antigravity (juiz ≠ autor: Opus↔Sonnet).
+- `verificar.bat` — Claude **Sonnet 5.5** como Verifier (junto ao Antigravity-Gemini já é cross-model; Sonnet é o juiz da casa).
+- `emular_verificador.bat <modelo> [effort]` — emulador cross-model quando NÃO há Antigravity (juiz ≠ autor: Opus 5.5/Fable 5.1 ↔ Sonnet 5.5).
+- `executar.bat <modelo> [effort]` — executor de subagente (fan-out); `effort` só entra pela escada do `loop_run.py`.
 - `venci.bat` — atalho: limpa `veredicto.md` e roda `verificar.bat`.
+- `prova.exemplo.bat` — copie para `prova.bat` com o comando real: exit 0 = verde, e o juiz só julga o que o teste não pega.
 '''
 
 SOLUCAO_TEMPLATE = '''TAREFA: (descreva aqui o que deve ser feito)
@@ -185,7 +196,7 @@ def instalar(destino):
                 f.write(conteudo)
             print(f'  [data] {nome} (template)')
     print(f'\nInstancia do loop-agente criada em:\n  {destino}')
-    print('Uso: edite solucao.txt e rode  venci.bat  (ou emular_verificador.bat claude-sonnet-5)')
+    print('Uso: edite solucao.txt e rode  venci.bat  (ou emular_verificador.bat claude-sonnet-5-5)')
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@
 
 ## 🤔 O que é isto
 
-O Combo é uma **skill do [Claude Code](https://code.claude.com/docs/en/skills)** que descreve como trabalhar um projeto de ponta a ponta com o mínimo de idas e vindas ao dono e o mínimo de tokens. Ela nasceu em 29/08/2026, numa noite em que um bot de atendimento foi ao ar por exatamente este caminho, e desde a v2 é julgada por ela mesma: cada versão tem fonte auditada em `references/`, portão em `prova.py` e testes puros em `scripts/test_*.py`.
+O Combo é uma **skill do [Claude Code](https://code.claude.com/docs/en/skills)** que descreve como trabalhar um projeto de ponta a ponta com o mínimo de idas e vindas ao dono e o mínimo de tokens. Ela nasceu em 29/08/2026, numa noite em que um bot foi ao ar por exatamente este caminho, e desde a v2 é julgada por ela mesma: cada versão tem fonte auditada em `references/`, portão em `prova.py` e testes puros em `scripts/test_*.py`.
 
 A esteira tem quatro lâminas, sempre nesta ordem:
 

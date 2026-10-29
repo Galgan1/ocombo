@@ -7,7 +7,8 @@ Uso: python tools/publicar.py [--origem <pasta da skill>] [--mapa <json>] [--che
   normalizando CRLF -> LF e pulando caches (__pycache__, .ruff_cache);
 - aplica, na ordem, as substituicoes do mapa (arquivo JSON LOCAL, fora do repo: por padrao
   ~/.claude/ocombo-publicar.json) — e assim que nomes, caminhos e projetos privados ficam de fora;
-  a lista 'excluir' do mapa deixa arquivos inteiros fora do espelho (dossies de projeto);
+  a lista 'excluir' do mapa deixa arquivos inteiros fora do espelho (dossies de projeto) e a lista 'cortar'
+  (regex por linha, so .md/.txt) tira entradas de lista privadas com as continuacoes indentadas;
 - o commit e do autor: identidade LOCAL do repo (git config user.email = noreply do GitHub) e mensagem
   sem trailer de sessao — tools/prova_repo.py reprova a historia se algum commit fugir disso;
 - espelha de verdade: arquivo que sumiu da origem some do repo;
@@ -21,6 +22,7 @@ autor republicar com um comando. Sem o mapa ele copia sem substituir.
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -30,7 +32,7 @@ MAPA_PADRAO = os.path.join(os.path.expanduser('~'), '.claude', 'ocombo-publicar.
 ORIGEM_PADRAO = os.path.join(os.path.expanduser('~'), '.claude', 'skills', 'ocombo')
 GERENCIADOS = ('SKILL.md', 'prova.py', 'scripts', 'assets', 'references')
 TEXTO = ('.md', '.py', '.txt', '.json', '.js', '.mjs', '.bat', '.sh', '.yml', '.yaml', '.cfg', '.toml')
-IGNORAR_PASTAS = ('__pycache__', '.ruff_cache', 'node_modules', '.git')
+IGNORAR_PASTAS = ('__pycache__', '.ruff_cache', '.pytest_cache', 'node_modules', '.git')
 
 
 def sha256(dados):
@@ -52,11 +54,32 @@ def listar(origem, excluir=()):
     return sorted(a for a in achados if a not in set(excluir))
 
 
-def transformar(dados, rel, substituicoes, usadas):
-    """Aplica LF + substituicoes num arquivo de texto; binarios passam intactos."""
+def cortar(texto, cortes, usadas):
+    """Tira do texto cada linha que casa um regex de 'cortar' e as continuacoes indentadas logo abaixo
+    (uma entrada de lista em varias linhas sai inteira). usadas recebe o indice de cada regex que casou."""
+    rxs = [re.compile(c) for c in cortes]
+    saida, pulando = [], False
+    for linha in texto.split('\n'):
+        if pulando and linha[:1] in (' ', '\t'):
+            continue
+        pulando = False
+        for i, rx in enumerate(rxs):
+            if rx.search(linha):
+                usadas.add(i)
+                pulando = True
+                break
+        if not pulando:
+            saida.append(linha)
+    return '\n'.join(saida)
+
+
+def transformar(dados, rel, substituicoes, usadas, cortes=(), cortes_usados=None):
+    """Aplica LF + cortes (so .md/.txt) + substituicoes num arquivo de texto; binarios passam intactos."""
     if not rel.endswith(TEXTO):
         return dados
     texto = dados.decode('utf-8').replace('\r\n', '\n')
+    if cortes and rel.endswith(('.md', '.txt')):
+        texto = cortar(texto, cortes, cortes_usados if cortes_usados is not None else set())
     for i, (de, para) in enumerate(substituicoes):
         if de in texto:
             texto = texto.replace(de, para)
@@ -66,18 +89,20 @@ def transformar(dados, rel, substituicoes, usadas):
 
 def carregar_mapa(caminho):
     if not caminho or not os.path.exists(caminho):
-        return {'substituicoes': [], 'proibidos': [], 'excluir': []}
+        return {'substituicoes': [], 'proibidos': [], 'excluir': [], 'cortar': []}
     with open(caminho, encoding='utf-8') as f:
         m = json.load(f)
     return {'substituicoes': [tuple(p) for p in m.get('substituicoes', [])],
             'proibidos': list(m.get('proibidos', [])),
-            'excluir': list(m.get('excluir', []))}
+            'excluir': list(m.get('excluir', [])),
+            'cortar': list(m.get('cortar', []))}
 
 
 def publicar(origem, repo, mapa, checar=False):
     """Devolve (linhas_relatorio, problemas). problemas vazio = verde."""
-    problemas, linhas, usadas = [], [], set()
+    problemas, linhas, usadas, cortes_usados = [], [], set(), set()
     subs = mapa['substituicoes']
+    cortes = list(mapa.get('cortar', []))
     excluir = list(mapa.get('excluir', []))
     for rel in excluir:  # 'excluir' aponta arquivo REAL da origem; nome errado = mapa desatualizado
         if not os.path.isfile(os.path.join(origem, rel)):
@@ -89,10 +114,13 @@ def publicar(origem, repo, mapa, checar=False):
     for rel in relativos:
         with open(os.path.join(origem, rel), 'rb') as f:
             bruto = f.read()
-        gerados[rel] = transformar(bruto, rel, subs, usadas)
+        gerados[rel] = transformar(bruto, rel, subs, usadas, cortes, cortes_usados)
     for i, (de, _) in enumerate(subs):
         if i not in usadas:
             problemas.append('substituicao nao casou em nenhum arquivo (mapa desatualizado): %r' % de)
+    for i, c in enumerate(cortes):
+        if i not in cortes_usados:
+            problemas.append('corte nao casou em nenhuma linha (mapa desatualizado): %r' % c)
     # espelho: o que esta no repo dentro das pastas gerenciadas e nao veio da origem, sai
     atuais = set(listar(repo))
     sobras = sorted(atuais - set(gerados))

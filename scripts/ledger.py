@@ -9,7 +9,8 @@ Arquivo: ~/.claude/ocombo-ledger.jsonl (local, fora do canal). Uma linha JSON po
 
 Uso:
   python ledger.py escalar   <instancia> <tipo-regua> "<o que precisa do dono>"
-  python ledger.py sim       <instancia> "<frase do dono>"        (fecha a escalada aberta mais recente)
+  python ledger.py sim       <instancia> "<frase do dono>" [--fecha <trecho>]
+                             (fecha a escalada aberta mais recente; com --fecha, a mais recente cujo texto contem o trecho)
   python ledger.py pendentes [instancia]      exit 1 se ha escalada aberta (o juiz/hook usa como portao)
   python ledger.py resumo    [AAAA-MM-DD]     cupom do dia: ciclos, veredictos, USD, o que esperou o dono
   python ledger.py veredicto <instancia> <rodada> <veredicto> <usd>   (chamado pelo juiz.py)
@@ -60,11 +61,17 @@ def pendentes(itens, instancia=None):
         if ev.get('tipo') == 'escalada':
             abertas.append(ev)
         elif ev.get('tipo') == 'sim' and abertas:
-            # fecha a escalada aberta mais recente da mesma instancia
+            # fecha a escalada aberta mais recente da mesma instancia; com 'fecha' (15/09/2026),
+            # so a mais recente cujo texto contem o trecho - o sim LIFO ja fechou escalada errada
+            # (incidente de 08/09/2026). Sem par = nao fecha nada.
+            trecho = str(ev.get('fecha') or '').lower()
             for i in range(len(abertas) - 1, -1, -1):
-                if abertas[i].get('instancia') == ev.get('instancia'):
-                    abertas.pop(i)
-                    break
+                if abertas[i].get('instancia') != ev.get('instancia'):
+                    continue
+                if trecho and trecho not in str(abertas[i].get('texto') or '').lower():
+                    continue
+                abertas.pop(i)
+                break
     return abertas
 
 
@@ -118,8 +125,16 @@ def main(argv):
         print('escalada registrada: [%s] %s' % (ev['regua'], ev['texto']))
         return 0
     if cmd == 'sim' and len(argv) >= 3:
-        ev = gravar({'instancia': argv[1], 'tipo': 'sim', 'texto': ' '.join(argv[2:])})
-        print('sim registrado: ' + ev['texto'])
+        resto, fecha = list(argv[2:]), ''
+        if '--fecha' in resto:                      # qual escalada este sim fecha (trecho do texto)
+            k = resto.index('--fecha')
+            fecha = resto[k + 1] if k + 1 < len(resto) else ''
+            del resto[k:k + 2]
+        ev = {'instancia': argv[1], 'tipo': 'sim', 'texto': ' '.join(resto)}
+        if fecha:
+            ev['fecha'] = fecha
+        ev = gravar(ev)
+        print('sim registrado%s: %s' % ((' (fecha "%s")' % fecha) if fecha else '', ev['texto']))
         return 0
     if cmd == 'veredicto' and len(argv) >= 5:
         gravar({'instancia': argv[1], 'tipo': 'veredicto', 'rodada': argv[2], 'veredicto': argv[3], 'usd': argv[4]})

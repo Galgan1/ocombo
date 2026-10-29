@@ -2,11 +2,20 @@
 """Smoke de navegador do ocombo (rubrica site C4): abre a URL no Chromium headless via Playwright.
 
 Uso:  python smoke_web.py <url> [--texto "Entrar"] [--seletor css] [--saida arquivo.txt]
+                             [--spec caminho/do/spec.js]
   exit 0 = pagina abriu sem erro de JS, sem 5xx e com o esperado; 1 = falhou; 2 = Playwright ausente.
 
 Onde o Playwright vem (primeiro que existir): ./node_modules/@playwright/test (o repo atual) ->
 $OCOMBO_NODE_TOOLS/node_modules/@playwright/test. Instalar uma vez na pasta escolhida:
   npm i -D @playwright/test && npx playwright install chromium
+`--spec` (09/09/2026): pagina ATRAS DE LOGIN precisa de passos proprios (entrar, esperar a tela).
+Desde 10/09/2026 a TELA DE LOGIN em si ja passa no spec padrao: o 401 da checagem de sessao e um relato do
+navegador, nao erro de JS, e `assets/playwright/filtro.js` o separa (SMOKE_IGNORAR_STATUS, padrao 401,403;
+5xx nunca se tolera). O proprio spec padrao ja mandava "copie este arquivo
+para o repo e acrescente passos"; `--spec` faz esse spec do repo rodar POR AQUI, para o exit code sair
+desta ferramenta e a evidencia ser a mesma de sempre. O arquivo e copiado como `smoke.spec.js` no destino
+(o testMatch da config nao muda). Senha SEMPRE por variavel de ambiente, nunca no argumento.
+
 O spec e a config (assets/playwright/) sao COPIADOS para <pasta>/ocombo-smoke/ antes de rodar, porque o
 `require('@playwright/test')` resolve relativo ao arquivo de config (medido em 06/09/2026: rodar a config
 de dentro da skill da MODULE_NOT_FOUND). Relatorio: saida do runner + resumo do JSON + EXIT= no fim.
@@ -25,7 +34,7 @@ def pasta_playwright():
     """Pasta com node_modules/@playwright/test, ou None."""
     for base in [os.getcwd(), os.environ.get('OCOMBO_NODE_TOOLS') or '']:
         if base and os.path.isdir(os.path.join(base, 'node_modules', '@playwright', 'test')):
-            # realpath devolve a CAIXA real do caminho no Windows: com "c--users-user" x "C--Users-User"
+            # realpath devolve a CAIXA real do caminho no Windows: com "c--users-x" x "C--Users-X"
             # o Node carrega @playwright/test duas vezes e o runner acusa "two different versions" (06/09/2026)
             return os.path.realpath(base)
     return None
@@ -66,7 +75,7 @@ def main(argv):
         print(__doc__)
         return 2
     url = argv[0]
-    texto = seletor = saida = None
+    texto = seletor = saida = spec = None
     i = 1
     while i < len(argv):
         if argv[i] == '--texto':
@@ -77,6 +86,9 @@ def main(argv):
             i += 2
         elif argv[i] == '--saida':
             saida = argv[i + 1]
+            i += 2
+        elif argv[i] == '--spec':
+            spec = argv[i + 1]
             i += 2
         else:
             i += 1
@@ -92,8 +104,19 @@ def main(argv):
         return 2
     alvo = os.path.join(base, 'ocombo-smoke')
     os.makedirs(alvo, exist_ok=True)
-    for a in ('smoke.spec.js', 'playwright.config.js'):
-        shutil.copyfile(os.path.join(ASSETS, a), os.path.join(alvo, a))
+    shutil.copyfile(os.path.join(ASSETS, 'playwright.config.js'), os.path.join(alvo, 'playwright.config.js'))
+    # filtro.js viaja junto: o spec (o padrao e o do repo) faz require('./filtro.js') (10/09/2026)
+    shutil.copyfile(os.path.join(ASSETS, 'filtro.js'), os.path.join(alvo, 'filtro.js'))
+    if spec:
+        if not os.path.isfile(spec):
+            linhas.append('spec inexistente: ' + spec)
+            texto_fim = chr(10).join(linhas + ['EXIT=2'])
+            print(texto_fim)
+            if saida:
+                open(saida, 'w', encoding='utf-8').write(texto_fim + chr(10))
+            return 2
+        linhas.append('[spec do repo] ' + os.path.abspath(spec))
+    shutil.copyfile(spec or os.path.join(ASSETS, 'smoke.spec.js'), os.path.join(alvo, 'smoke.spec.js'))
     rel_json = os.path.join(alvo, 'relatorio.json')
     env = dict(os.environ)
     env['SMOKE_URL'] = url

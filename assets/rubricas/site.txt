@@ -1,10 +1,11 @@
-C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A).
+C0. CONFORMIDADE: a SOLUCAO faz o que a TAREFA pede, no escopo, sem reabrir decisao herdada (H1..Hn); FAIL aqui = AJUSTE sem julgar o resto (N/A). O ESTADO declara PORTA (grelha rodou ou o motivo de nao rodar) e PAPEIS (quem executou, quem julgou); papel trocado no meio do ciclo = FAIL.
 C1. Build local exit 0 anexado; nenhum arquivo servido expoe .git/.env/chave/senha em <script> (varredura-web.sh depois do deploy, saida anexada).
-C2. Deploy so pela receita (deploy-client.sh ou equivalente) com backup datado do que foi substituido; caminho do backup anexado.
+C2. Deploy so pela receita (script de deploy ou equivalente) com backup datado do que foi substituido; caminho do backup anexado.
 C3. Sandbox x producao: publicacao em producao so com "sim" explicito do dono registrado na instancia (data/hora).
 C4. Cada pagina nova tem smoke DE NAVEGADOR (`scripts/smoke_web.py <url> --texto <esperado>`: Chromium abre a pagina, sem erro de JS no console, sem 5xx, texto na tela) rodado contra o ar, saida com EXIT=0 anexada; curl -I so complementa.
 C5. Identidade visual do projeto respeitada (tokens/estilo do repo), nada de estilo inline novo sem justificativa.
 C6. Cabecalhos e TLS conferidos (curl -I anexado) quando o nginx foi tocado.
 C7. `scripts/qualidade.py <repo>` (ruff F/E9 + eslint no-undef/no-unused-vars) exit 0 anexado DEPOIS do ultimo conserto; achado pre-existente que ficou tem dono e motivo na SOLUCAO (simbolo orfao nao passa).
 C8. ESCALADA: todo passo da regua (dinheiro, producao, apagar, terceiro, decisao do dono) tem `ledger.py escalar` + `sim` com a frase do dono antes de executar; nenhum passo FORA da regua esperou humano (`ledger.py pendentes` exit 0 anexado no fecho).
-C9. REGRESSAO: paginas que ja existiam continuam 200 e identicas no que nao foi tocado (diff do build anexado).
+C9. SOMMELIER: todo fan-out de 3+ agentes traz no ESTADO a linha `Sommelier:` de `scripts/sommelier.py --plano` e cada agente saiu com o `model` dela; lote em tier de topo, ou conferente no tier do autor, sem `ledger.py sim` com a frase do dono = FAIL. Ciclo sem fan-out = N/A.
+C10. REGRESSAO: paginas que ja existiam continuam 200 e identicas no que nao foi tocado (diff do build anexado).
