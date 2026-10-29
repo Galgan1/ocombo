@@ -548,8 +548,14 @@ def segredos_na_instancia(pasta):
     return achados
 
 
+# POSIX (29/10/2026): raizes comuns, nunca '/' solto (senao /adm, /fiz e URLs virariam caminho); so onde o separador e '/'
+_RE_CAMINHO_POSIX = re.compile(r'(?<![\w:/.~])(/(?:tmp|home|mnt|var|opt|srv|usr|etc|root|Users|private)/[^\s"\'<>|)\]`,;]+)')
+
+
 def _caminhos_citados(texto, home_real):
     citados = [m.group(1) for m in _RE_CAMINHO.finditer(texto or '')]
+    if os.sep == '/':
+        citados += [m.group(1) for m in _RE_CAMINHO_POSIX.finditer(texto or '')]
     citados += [home_real + m.group(1) for m in _RE_CAMINHO_HOME.finditer(texto or '')]
     return [os.path.abspath(c.rstrip('.:').replace('/', os.sep)) for c in citados]
 
