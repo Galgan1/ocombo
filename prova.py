@@ -58,6 +58,7 @@ ARQUIVOS = [
     'references/pacotes/codigo.md', 'references/pacotes/texto.md', 'references/pacotes/pesquisa.md',
     'references/pacotes/desenho.md', 'references/pacotes/acao.md',
     'references/pesquisa-2026-10-02-v13.md',   # v13
+    'references/pesquisa-2026-11-07-v17.md',   # v17: o tamanho antes do modo
     'scripts/ram.py', 'scripts/test_ram.py', 'assets/mcp-vazio.json',   # v14: regra da RAM livre
 ]
 # v13 (02/10/2026): so ids de modelo da geracao atual em tudo que a esteira executa ou cita como comando.
@@ -159,7 +160,8 @@ def main():
                   'OCOMBO_MODO', 'modos.PORTOES', 'usage credits',
                   'ocombo-juiz', 'porta.py',
                   'sommelier.py', 'Lote nunca no topo',
-                  'OCOMBO_ESCADA', 'claude-sonnet-5-5', '--modelos', 'model: sonnet']:   # v6 + v9 + v10 + v11 + v13
+                  'OCOMBO_ESCADA', 'claude-sonnet-5-5', '--modelos', 'model: sonnet',
+                  'Passo 0', 'SIMPLES']:   # v6 + v9 + v10 + v11 + v13 + v17
         ok(frase in texto, 'SKILL.md preserva: ' + frase)
     # testes unitarios do juiz (sem chamar claude)
     tj = os.path.join(AQUI, 'scripts', 'test_juiz.py')

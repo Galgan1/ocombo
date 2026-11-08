@@ -151,6 +151,22 @@ juiz de tier diferente da sessão. Sem Jev = regra fixa com o motivo. `OCOMBO_JE
 
 - **v14.2 (16/10/2026) — `qualidade.py` lê o "type" do package.json mais próximo:** defeito: o sourceType vinha só do package.json da raiz passada (`repo_esm`), e a raiz de um site, sem "type", acusou 85 Parsing error falsos em `app/client/**`, que declara "type": "module"; conserto: `esm_por_arquivo` sobe da pasta de cada .js até a raiz e o primeiro package.json que declara "type" decide, `agrupar_por_esm` manda ao eslint um grupo com `OCOMBO_ESLINT_MODULE=1` e outro com `=0`, e o relatório mostra `esm=1`, `esm=0` ou `esm=1:N/0:M`; sem "type" no caminho, tudo como antes; test_qualidade +4 (`TestEsmAninhado`, um deles fim a fim com o eslint real); origem: um ciclo de revisão de site, 16/10/2026 (critério C4).
 
+- **v17 (07/11/2026) — o tamanho antes do modo:** experimento do dono: "opala. crie um site...
+  www.exemplo.com.br/olamundo.html" abriu 4 agentes de pesquisa e marcou a grelha para uma pagina de uma frase, ate
+  ele mandar "pare tudo."; depois: "você não foi capaz de reconhecer que era um pedido simples. doravante você precisa
+  configurar esta habilidade. pesquise na internet como fazer isto." Causas: a porta obrigava grelha em toda peca nova e
+  em toda regua tocada, e o modo entrava sem olhar o tamanho (opala = pesquisa 4); o maestro contou o andaime do combo
+  como arquivos da entrega e deu o pronto como ausente. Conserto: Passo 0 no topo do SKILL.md; `porta.py` com TAMANHO
+  (SIMPLES/NORMAL), `--modo`, `--simples`, AVISO e `MODO_MAX_SIMPLES = 1`; `TestTamanhoV17` (12 testes, vermelho as
+  22:24:35); `prova.py` exige a pesquisa nova e preserva "Passo 0" e "SIMPLES". Fontes: `pesquisa-2026-11-07-v17.md`.
+  Decisão do dono (08/11/2026, ledger [V17-FECHOS], "Só o juiz Sonnet (Recomendado)"): no SIMPLES o fecho é só o juiz Sonnet
+  sobre a entrega, sem dupla antes do sim e sem Fable. Rodada 2 (juiz Sonnet r1: 0 grave, 4 médios, 4 leves; vermelho
+  07:25:20): a régua casa palavra inteira, com o imperativo, fora do texto do alvo (antes "paga a fatura.pdf" saía SIMPLES e
+  "no arquivo" levantava a régua de produção); alvo tem de ser arquivo; lista de funcionalidades e causa a descobrir vão ao
+  NORMAL; "Como escolher" (modos.md) e a regra de bolso do SKILL.md dizem que o tamanho vem antes do número. Juiz r2: os 8
+  resolvidos, 0 grave, 0 médio, 4 leves. Depois dele (vermelho 07:30:37, só portão): `--simples` descarta pista de régua sem
+  volta com AVISO, e a porta avisa quando a régua veio só de palavra comum; `scripts.md` com a exceção do Fable. Ficaram 2
+  leves: linha Porta estranha com `--modo` inválido (exit 2 e RECUSA dizem o certo) e Passo 0 denso (SKILL.md no teto de linhas).
 - **v16 (26/10/2026) — o Gemini sai do processo:** ordem do dono, literal: "esqueça gemini. registre isto no processo."
   Motivo medido na r1 de um ciclo de 26/10/2026 (13:14): rodada INDEFINIDA, com o argon sem cota ("esgotado") e o
   flash vazio porque a leitura de arquivo foi auto-negada em headless. `modos.py`: juiz `claude-sonnet-5-5` nos 12 perfis

@@ -152,7 +152,7 @@ custo relativo (saida = 5x entrada em todo tier) e os tres exit codes da CLI. Do
 origem e limites em `references/sommelier.md`.
 
 `scripts/fecho_fable.py <instancia>` — ordem do dono (03/10/2026): no fim das rodadas o Fable 5.1 no máximo
-(`claude-fable-5-1 --effort max`) julga SEMPRE o resultado inteiro, depois do carimbo (`juiz.py --carimbo` exit
+(`claude-fable-5-1 --effort max`) julga SEMPRE o resultado inteiro (no caminho SIMPLES nao roda: decisao do dono, 08/11/2026), depois do carimbo (`juiz.py --carimbo` exit
 0, senão exit 2). ACEITO (exit 0) = ele escreve a mensagem `.441` ao dono (4 parágrafos de 36 a 44 palavras,
 sem custo), gravada em `fecho.md`; REFAZER (exit 1) = MOTIVOS numerados, o combo roda só sobre eles e chama o
 fecho de novo; teto 3 julgamentos (`historico/fecho.rN.md`; o 4º sai exit 3 = parada honesta ao dono);
@@ -188,8 +188,20 @@ teste" que saiu do SKILL.md), `references/pacotes/texto.md`, `references/pacotes
 - `assets/mcp-vazio.json` — com `OCOMBO_SEM_MCP=1` o `juiz.py` (e dupla/rubrica/fecho, que usam `argumentos_claude`)
   sobe com `--strict-mcp-config --mcp-config assets/mcp-vazio.json`. Sem a variável, a linha é byte a byte a de antes.
 
+## v17 (07/11/2026): o tamanho antes do modo
+
+`scripts/porta.py` mede o TAMANHO antes das laminas: `tamanho()` devolve SIMPLES ou NORMAL com os motivos e, quando so
+fatos declarados empurram um pedido de cara simples ao NORMAL, um AVISO (andaime nao conta; pronto de um alvo cabe numa
+linha); `alvos()` acha o alvo (URL, dominio ou arquivo; e-mail, numero de versao, abreviacao e nome de framework ficam
+fora) e `_e_arquivo()` exige que ele seja um arquivo; `modo_efetivo()` prende o modo do SIMPLES em `MODO_MAX_SIMPLES`
+(1; f1 passa como esta). `pistas()` da regua casa palavra inteira, com o imperativo, fora do texto do alvo. Argumentos
+novos: `--modo M` e `--simples`. O bloco do ESTADO continua com tres linhas: o tamanho entra na linha Porta. Testes:
+`TestTamanhoV17` em `scripts/test_papeis.py` (28 testes; o pedido literal de 07/11/2026 e o caso real), vermelho as
+22:24:35 e, na rodada 2, as 07:25:20. Fontes conferidas por download: `pesquisa-2026-11-07-v17.md`.
+
 ## Pesquisas auditadas (fonte de toda URL do SKILL.md)
 
 `pesquisa-2026-09-05.md`, `pesquisa-2026-09-05-v3.md`, `pesquisa-2026-09-06-v4.md`, `pesquisa-2026-09-06-v6.md`,
 `pesquisa-2026-09-09-v9.md`, `pesquisa-2026-09-10-v10.md` e, na v13, `pesquisa-2026-10-02-v13.md` (tabela de modelos e
-preços de 25/09/2026, trechos literais da doc sobre effort, e a medição do custo.log por modelo e papel).
+preços de 25/09/2026, trechos literais da doc sobre effort, e a medição do custo.log por modelo e papel) e, na v17,
+`pesquisa-2026-11-07-v17.md` (regra de escala pelo tamanho do pedido).

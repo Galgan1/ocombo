@@ -19,6 +19,8 @@ portão; ele só não paga por rodada extra, dupla de juízes ou fan-out.
 
 ## Como escolher
 
+- **Antes do número, o tamanho** (Passo 0 do SKILL.md, `scripts/porta.py`). Num pedido SIMPLES o "opala" do dono vira capricho
+  na própria entrega, que o juiz cobra, e o modo vale no máximo 1. O resto desta página vale para o pedido NORMAL.
 - O dono diz o número (`/ocombo 7`, "modo 3", "manda de opala", "fórmula 1"). **Sem número, é 0.** v13: a dose
   colada (`--modo 3+`, `3+2`, `7-`) sobe ou desce degraus a partir do que ele disse; f1 não tem dose.
 - Na instância: `python scripts/iniciar.py <pasta> --modo 7|f1` grava a linha no ESTADO.
@@ -130,3 +132,30 @@ modo (effort e juiz) e não trocar o executor por tier menor: executor Sonnet ob
 decide). A linha do `custo.log` ganha `effort=e` quando houver; `custo_historico.py --modelos` agrupa por modelo ×
 papel × effort — é a bancada para refazer o sweep de effort do Sonnet 5.5 (a doc manda começar em `medium` para
 trabalho agentic) antes de mexer no perfil 0, que continua sem `--effort`.
+
+## v17 (07/11/2026) — o tamanho do pedido é o teto do modo
+
+Caso pago: em 07/11/2026 o dono pediu "opala. crie um site... www.exemplo.com.br/olamundo.html", uma página de uma
+frase, e o combo abriu 4 agentes de pesquisa e marcou a grelha até ele mandar "pare tudo." Era um experimento: "você não
+foi capaz de reconhecer que era um pedido simples." Duas causas: a porta obrigava grelha em toda peça nova e em todo
+passo de produção sem olhar o tamanho, e o maestro leu "opala = pesquisa 4" nesta tabela e contou o andaime do próprio
+combo (prova, receita de deploy, constituição) como arquivos da entrega.
+
+Regra (fonte única: `scripts/porta.py`; testes `TestTamanhoV17` em `scripts/test_papeis.py`):
+
+- SIMPLES = um arquivo como alvo (URL que termina em arquivo, ou nome de arquivo; domínio sozinho e seção do site não
+  contam), até 25 palavras fora o alvo, nenhuma palavra de escopo largo, sem lista de funcionalidades (2 ou mais vírgulas
+  ou "e") nem causa a descobrir ("descubra", "por que"), até 2 arquivos na ENTREGA, nenhuma decisão aberta e régua só de
+  produção (porta de duas mãos: deploy com backup volta). A régua casa palavra inteira, com o imperativo ("paga", "apague",
+  "manda"). `--simples` declara simples um pedido sem alvo escrito e descarta pista de régua sem volta vinda de palavra comum
+  ("plano de aula"), com AVISO; régua declarada continua valendo. `--forcar grelha` leva ao caminho completo.
+- No SIMPLES o modo vale no máximo 1 (`MODO_MAX_SIMPLES`) e a sessão faz direto e sozinha. O piso (prova, triagem, linter,
+  régua, carimbo) não muda. O F1 passa como está: é o eixo do tempo. O fecho é só o juiz Sonnet sobre a entrega: sem dupla
+  antes do sim e sem Fable (decisão do dono, 08/11/2026, ledger [V17-FECHOS]: "Só o juiz Sonnet (Recomendado)").
+- Fatos declarados vencem a pista do texto. Quando só eles empurram um pedido de cara simples ao NORMAL, a porta imprime
+  AVISO: arquivo conta só a ENTREGA, e o pronto de um alvo só cabe numa linha.
+
+Por quê (trechos literais em `references/pesquisa-2026-11-07-v17.md`): a Anthropic embute regras de escala no prompt
+porque o agente "struggle[s] to judge appropriate effort" e investir demais em pedido simples "was a common failure mode
+in our early versions"; a doc do Claude Code guarda o max para problema difícil, porque "On ordinary tasks it tends to
+overthink"; e decisão de duas mãos pede processo leve (carta da Amazon de 2015).

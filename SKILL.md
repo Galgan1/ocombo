@@ -14,6 +14,9 @@ description: >-
 A skill é julgada por ela mesma: fonte auditada em `references/pesquisa-*.md`, portão em `prova.py`,
 scripts em `references/scripts.md`, changelog em `references/versoes.md`.
 
+**Passo 0 — o tamanho antes do modo (v17):** `python scripts/porta.py --pedido "<frase do dono>" --modo <M>` roda antes de tudo.
+SIMPLES (um arquivo como alvo, pedido curto, até 2 arquivos na ENTREGA, nada sem volta): a sessão faz direto e sozinha, com o piso, e o modo vale no máximo 1 — modo compra certeza, e pedido simples não tem incerteza; o fecho é só o juiz Sonnet sobre a entrega, sem dupla e sem Fable (dono, 08/11/2026). NORMAL: as lâminas abaixo.
+
 ## As quatro lâminas, na ordem
 
 1. **`grilling` (/grill-me)** — papel `ocombo-grelha`, e SÓ quando a porta pedir (v10): mapeie a árvore
@@ -44,7 +47,7 @@ scripts em `references/scripts.md`, changelog em `references/versoes.md`.
 
 ## Modos — 0 a 10, e o F1 (v9)
 
-Um botão só: o número diz quanto o combo INVESTE acima do piso, nunca o que ele deixa de checar.
+Um botão só: o número diz quanto o combo INVESTE acima do piso, nunca o que ele deixa de checar, e só entra depois do tamanho (Passo 0).
 **Sem número, é 0** (o combo de sempre, byte a byte). `python scripts/modos.py` lista os 12 perfis; a
 tabela, o que cada degrau acrescenta e as armadilhas estão em `references/modos.md`.
 Falas do dono que escolhem o modo: "modo 7", "manda no 3", "de opala" (10), "fórmula 1"/"F1", "no talo",
@@ -52,7 +55,7 @@ Falas do dono que escolhem o modo: "modo 7", "manda no 3", "de opala" (10), "fó
 
 - **Piso inviolável, igual em todos:** prova da instância, triagem, linter, régua de escalada e carimbo.
   Modo alto compra rodada, esforço e revisor — nunca compra atalho (`modos.PORTOES`, provado por teste).
-- **0 a 3** rotina · **4 a 6** trabalho que outra pessoa usa · **7 a 9** dinheiro, produção ou terceiro
+- **No pedido NORMAL: 0 a 3** rotina · **4 a 6** trabalho que outra pessoa usa · **7 a 9** dinheiro, produção ou terceiro
   no meio · **10 opala** quando errar custa mais que gastar · **F1** quando o relógio é o problema.
 - **10 x F1 são eixos diferentes.** O 10 queima por CERTEZA (pesquisa 4, teto 9, fan-out `size medium` em levas de 4,
   dupla nos passos da régua; desde 29/10/2026 juiz em medium e executor em high, porque effort alto comprava espera,
@@ -125,11 +128,11 @@ por `python scripts/instalar_agentes.py` (`--verificar` é portão), detalhe e l
 
 ## Porta de entrada — a grelha não é obrigatória (v10)
 
-`python scripts/porta.py --pedido "..." [--reparo|--novo] [--arquivos N] [--regua ...]` decide as
-lâminas por FATO declarado e imprime as três linhas que entram no ESTADO (Porta, Lâminas, Papéis).
-DISPENSA a grelha quando não há decisão a abrir: reparo pontual, escopo fechado, H1..Hn fechados,
-critério de pronto claro. OBRIGA quando é peça nova, escopo largo (>= 5 arquivos), decisão em aberto ou
-pedido sem critério de pronto — e quando toca a régua, aí `--forcar sem-grelha` sai 2: ordem não desliga
+`python scripts/porta.py --pedido "..." [--modo M] [--reparo|--novo] [--arquivos N] [--regua ...]` mede o
+tamanho (Passo 0) e decide as lâminas por FATO; imprime as três linhas do ESTADO (Porta, Lâminas, Papéis).
+SIMPLES dispensa a grelha e a régua de produção segue no ledger. No NORMAL, DISPENSA em reparo pontual com
+H1..Hn fechados e critério de pronto claro; OBRIGA em peça nova, escopo largo (>= 5 arquivos), decisão em
+aberto, pedido sem critério de pronto ou régua tocada — aí `--forcar sem-grelha` sai 2: ordem não desliga
 portão. Grelha pulada sem o motivo escrito no ESTADO é FAIL em C0.
 
 ## Juiz por diff — o juiz relê só o que mudou (v2)
@@ -238,7 +241,7 @@ curta — tudo fora dela o juiz aprova e o executor segue, sem pergunta na conve
   com a frase dele (`ledger.py sim`), nunca inferido. `ledger.py pendentes` sai 1 com escalada aberta:
   é portão (prova.bat ou hook) antes de qualquer lâmina de produção.
 - Juiz e executor de tiers diferentes, sempre (a sessão Fable/Opus executa; julga o Sonnet 5.5, e o Gemini não entra
-  no processo desde a v16, 26/10/2026); item que caiu na régua leva `dupla.py`
+  no processo desde a v16, 26/10/2026); item que caiu na régua, fora do SIMPLES, leva `dupla.py`
   (segundo juiz Opus) antes de chegar ao dono — o dono recebe a decisão já revisada duas vezes, não o rascunho.
 - O dono vê sem ler código: `ledger.py resumo [dia]` imprime o cupom do dia (ciclos, rodadas,
   veredictos, USD, o que esperou o "sim"); o `juiz.py` grava cada veredicto no ledger sozinho, e o
@@ -279,7 +282,7 @@ num fan-out HERDA a sessão (20/09/2026: 88 agentes de transcrição em Fable at
 - Carimbo FINAL do juiz sobre a ENTREGA (não só sobre o desenho): anexe a seção ENTREGA ao
   solucao.txt com as evidências (exit codes, incidentes, custo.log, pendências) e rode o juiz de novo.
   "Rerun agendado não é exit code" — feche as medições antes de pedir o carimbo.
-- **Fable 5.1 no máximo julga SEMPRE o resultado no fim** (o dono, 03/10/2026): `scripts/fecho_fable.py <instância>`
+- **Fable 5.1 no máximo julga SEMPRE o resultado no fim** (o dono, 03/10/2026; no SIMPLES não roda, o dono, 08/11/2026): `scripts/fecho_fable.py <instância>`
   depois do carimbo. ACEITO = ele escreve a mensagem `.441` (4 × 40 palavras, cérebro frito: verifiquei · outro
   agente reportou · não provado · espera o "sim"), entregue como está; REFAZER = rodadas só sobre os motivos +
   carimbo + Fable de novo, até 3 vezes (exit 3 = parada honesta ao dono). Cupom fora. Executor Fable: declare.
